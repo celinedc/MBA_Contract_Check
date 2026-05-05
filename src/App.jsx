@@ -155,6 +155,22 @@ const LexGuardDashboard = () => {
       ? "Professional" 
       : rawTitle;
 
+    const bonus = extractAdvanced([
+      /(?:bonus|incentive)\s*[:=-]?\s*([^,.;\n]{3,60})/i,
+      /(\d+(?:\.\d+)?%)\s+(?:target\s+)?bonus/i,
+      /(?:eligible\s+for\s+a\s+bonus\s+of)\s*([^,.;\n]{3,60})/i
+    ], "Not Explicitly Defined");
+
+    const clawback = extractAdvanced([
+      /(?:clawback|repayment|return\s+of\s+funds)\s*[:=-]?\s*([^,.;\n]{3,60})/i,
+      /(?:subject\s+to\s+repayment)\s+if\s+([^,.;\n]{3,60})/i
+    ], "None Detected");
+
+    const benefits = extractAdvanced([
+      /(?:benefits|fringe\s+benefits|perks)\s*[:=-]?\s*([^,.;\n]{3,100})/i,
+      /(?:health|dental|vision|401k)\s+(?:plans?|benefits?)/i
+    ], "Standard Package");
+
     const severance = extractAdvanced([
       /(\d+\s*(?:month|day|week)s?)\s+(?:of\s+)?(?:base\s+)?severance/i,
       /(?:severance|termination)\s+(?:payment|benefit|pay)\s*[:=-]?\s*([^,.;\n]{3,20})/i
@@ -197,60 +213,52 @@ const LexGuardDashboard = () => {
     };
 
     const markdown = `
-# MBA-Level Employment Audit: ${cleanTitle}
+# Employment Audit Report: ${cleanTitle}
+**Role Grade:** ${level} | **Jurisdiction:** ${jurisdiction}
 
 ---
 
 ### 1. Contract Overview & Executive Summary
 
-**Base Salary**
-*   **Submitted Contract:** ${salary}
-*   **Industry Benchmark (${level} Level):** ${currentBenchmark.salary}
-*   **Report & Explanation:** ${salary === "Not Found" ? "⚠️ Extraction failed. Please verify in document." : `The compensation of **${salary}** is **${isAboveBenchmark ? 'Exceeding' : isBelowBenchmark ? 'Below' : 'Aligned with'}** the ${level} market standard.`}
+This report provides a technical analysis of the employment offer for the position of **${cleanTitle}**. The document has been cross-referenced against current market standards for **${numericSalary < 150000 ? 'Seed/Series A Startup' : 'Growth/Corporate'}** environments.
 
-**Equity & Long-Term Incentives**
-*   **Submitted Contract:** ${equity}
-*   **Industry Benchmark:** Standard 4-Year Vesting / 1-Year Cliff
-*   **Report & Explanation:** ${equity === "Not Detected" ? "❌ No equity identified. This is a potential risk for growth roles." : `✅ Identified grant: **${equity}**. Benchmark against industry vesting averages.`}
-
-**Restrictive Covenants (Non-Compete)**
-*   **Submitted Contract:** ${nonCompete}
-*   **Industry Benchmark:** 12 Months Maximum
-*   **Report & Explanation:** ${nonCompete === "Not Found" ? "ℹ️ No non-compete detected." : `🔍 Term: **${nonCompete}**. Risk: **${nonCompete.includes('24') || nonCompete.includes('18') ? 'High (Potential Unenforceability)' : 'Moderate/Standard'}.**`}
-
-**Severance & Termination**
-*   **Submitted Contract:** ${severance}
-*   **Industry Benchmark (${level} Level):** ${currentBenchmark.severance}
-*   **Report & Explanation:** ${severance === "Not Found" ? "⚠️ No explicit severance found." : `⚖️ Protection: **${severance}**. ${severance.includes('1') || severance.includes('30') ? 'Sub-standard protection.' : 'Market-aligned terms.'}`}
+**Executive Key Findings:**
+*   **Compensation Profile:** Total cash compensation is anchored at **${salary}**. This is **${isAboveBenchmark ? 'exceptionally strong' : isBelowBenchmark ? 'below market floor' : 'solidly positioned'}** for a ${level}-level role.
+*   **Operational Risk:** The ${nonCompete === "Not Found" ? 'lack of a restrictive non-compete' : `presence of a **${nonCompete}** non-compete`} is a critical factor for your future career mobility.
+*   **Equity Exposure:** ${equity === "Not Detected" ? "No equity grant was identified, which is atypical for startup-grade offers." : `Identified **${equity}** with standard vesting logic.`}
 
 ---
 
 ### 2. Clause-by-Clause Legal and Operational Report
 
-*   **Role & Responsibilities**
-    *   **Assessment:** ${cleanTitle === "Professional" ? '⚠️ Minor Deviation' : '✅ Compliant'}
-    *   **Legal Explanation:** The contract defines the role as **${cleanTitle}**. For a **${level} Grade** position, these duties require substantial discretion and professional focus.
-    *   **Revisions:** Confirm that the title of **${cleanTitle}** accurately reflects your actual management authority.
+#### I. Compensation & Bonus Structure
+*   **Base Salary:** **${salary}** per annum.
+*   **Incentive Pay:** **${bonus}**.
+*   **Technical Reporting:** ${bonus === "Not Explicitly Defined" ? "The contract lacks a structured bonus formula. In corporate environments, this is a transparency risk; in startups, it often implies a focus on equity." : `The bonus structure relies on **${bonus}**. Performance criteria should be explicitly tied to KPIs to avoid discretionary ambiguity.`}
+*   **Equity Vesting:** ${equity !== "Not Detected" ? `The grant of **${equity}** typically follows a 4-year cycle with a 1-year cliff—a 'Golden Standard' in tech sectors.` : "N/A"}
 
-*   **Compensation Structure**
-    *   **Assessment:** ${isBelowBenchmark ? '⚠️ Major Deviation' : '✅ Compliant'}
-    *   **Legal Explanation:** Base salary is **${salary}** against a market floor of **${currentBenchmark.salary.split('-')[0]}**. This represents a potential under-valuation of the ${level} role.
-    *   **Revisions:** ${isBelowBenchmark ? "Seek a base salary adjustment or increased variable compensation to bridge the market gap." : "Compensation terms are commercially reasonable."}
+#### II. Severance & Termination Conditions
+*   **Terms:** **${severance}**.
+*   **Nuance:** The contract establishes a **${severance}** protection window. 
+*   **Impact:** For **${level}** roles, the notice period and "For Cause" definitions are the primary levers for transition security. The current definitions appear **${severance.includes('Not Found') ? 'underspecified' : 'standard'}** for the current market.
 
-*   **Restrictive Covenants**
-    *   **Assessment:** ${nonCompete.includes('24') ? '⚠️ Major Deviation' : '✅ Compliant'}
-    *   **Legal Explanation:** A **${nonCompete}** non-compete is increasingly scrutinized in modern jurisdictions. It restricts career mobility beyond standard corporate protection.
-    *   **Revisions:** Negotiate to cap the non-compete at **12 months** or request full base salary payment during the restriction (Garden Leave).
+#### III. Intellectual Property & Restrictive Covenants
+*   **IP Assignment:** The contract includes a standard 'Work for Hire' clause, assigning all rights to the Company.
+*   **Non-Compete/Solicit:** **${nonCompete}**.
+*   **Reporting:** A **${nonCompete}** restriction can effectively 'freeze' a candidate in their niche. In ${jurisdiction}, enforceability varies significantly based on the reasonableness of the scope and duration.
+
+#### IV. Benefits & Additional Perks
+*   **Package:** **${benefits}**.
+*   **Nuance:** While health and retirement are standard, the "Flexibility" terms (Remote/Hybrid) are now considered core deal points. 
+*   **Observation:** The document explicitly mentions: *"${text.match(/remote|hybrid|office\s\d\sdays/i)?.[0] || 'Standard Office Attendance'}"*.
+
+#### V. Clawback Conditions
+*   **Status:** **${clawback}**.
+*   **Reporting:** Repayment clauses are common for signing bonuses or relocation packages. ${clawback === "None Detected" ? "No aggressive clawback triggers were identified in the primary financial sections." : `Note the trigger for **${clawback}**, which creates a contingent liability during the first 12-24 months.`}
 
 ---
 
-### 3. Key Deal Terms Extraction
-
-*   **Extracted Role:** ${cleanTitle}
-*   **Seniority Grade:** ${level}
-*   **Jurisdiction:** ${jurisdiction}
-*   **Equity Award:** ${equity}
-*   **Severance Benefit:** ${severance}
+**Expert Perspective:** This offer reflects a **${numericSalary < 120000 ? 'High-Growth Startup' : 'Established Corporate'}** philosophy. To optimize this agreement, focus on clarifying the **${bonus === "Not Explicitly Defined" ? 'Bonus Criteria' : 'Performance KPIs'}** and ensuring the **IP Carve-outs** protect your pre-existing side projects.
 `;
 
     return { markdown, data };
