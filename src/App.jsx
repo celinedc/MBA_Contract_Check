@@ -506,13 +506,23 @@ const LexGuardDashboard = () => {
     <>
       {!analysisResult ? (
         <div className="glass upload-card" style={{ maxWidth: '800px', margin: '0 auto', animation: 'slideUp 0.5s ease-out' }}>
+          <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '1rem', background: 'linear-gradient(to right, #fff, var(--text-secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Negotiate from a Position of Strength
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: 1.6, maxWidth: '600px', margin: '0 auto 2.5rem auto' }}>
+              Most people sign employment contracts without reading them. <strong>Contract Intelligence</strong> gives you the market data, tax math, and clause-level audit you need to optimize your offer.
+            </p>
+            <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)', marginBottom: '2.5rem' }}></div>
+          </div>
+
           <div style={{ marginBottom: '2.5rem' }}>
             <div style={{ width: '56px', height: '56px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
               <Upload size={28} color="var(--accent-primary)" />
             </div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.75rem' }}>Analyze New Contract</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '2.5rem' }}>
-              Select a PDF or paste your contract text to identify legal risks.
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.75rem' }}>Analyze New Contract</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2.5rem' }}>
+              Select a PDF or paste your contract text to identify legal risks and benchmarking data.
             </p>
             
             <div style={{ marginBottom: '2rem' }}>
