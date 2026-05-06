@@ -42,6 +42,11 @@ const LexGuardDashboard = () => {
   const [contractData, setContractData] = useState(null);
   const fileInputRef = useRef(null);
 
+  // Auto-scroll to top on tab change
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeTab]);
+
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
