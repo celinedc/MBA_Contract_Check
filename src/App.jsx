@@ -135,14 +135,17 @@ const LexGuardDashboard = () => {
           do {
             previousVal = val;
             val = val.replace(/[.,;:\)\s]+$/, '')
-                     .replace(/\s+(or|and|including|subject\s+to|as\s+defined|and\s+construed|benefit\s+plan|the\s+grant\s+of|employee\s+shall\s+be|as\s+may).*$/i, '')
+                     .replace(/\s+(or|and|including|subject\s+to|as\s+defined|and\s+construed|benefit\s+plan|the\s+grant\s+of|employee\s+shall\s+be|employee\b|as\s+may).*$/i, '')
                      .replace(/^(or|and|Report\s*>|Report:)\s+/i, '')
+                     .replace(/,\s*$/, '') // Remove trailing comma after scrubbing
                      .trim();
           } while (val !== previousVal);
           
           if (val.length > 2) {
             // Contextual override for Vacation
             if (val.toLowerCase().includes('unlimited')) return "Unlimited";
+            // More conservative article stripping to avoid clipping (e.g. Associate -> ssociate)
+            val = val.replace(/^(a|an|the|this|that|such)\s+/i, '');
             // Proper casing for specific fields
             return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
           }
@@ -180,7 +183,8 @@ const LexGuardDashboard = () => {
     if (cleanJurisdiction === "CA") cleanJurisdiction = "California";
 
     const rawTitle = extractAdvanced([
-      /(?:title|position|role|employed\s+as)\s*[:=-]?\s*([A-Za-z\s,]{3,60})(?=[.;\n]|\s{2,}|$)/i,
+      /(?:employed\s+as|position\s+of|role\s+of)\s+([A-Za-z\s,]{3,80})(?=\s+(?:on|at|for|under|subject|effective|shall)|[.;\n]|$)/i,
+      /(?:title|position|role)\s*[:=-]?\s*([A-Za-z\s,]{3,60})(?=[.;\n]|\s{2,}|$)/i,
       /(?:employed|working)\s+as\s+(?:a|an|the)?\s*([A-Za-z\s,]{3,60})/i
     ], "Professional");
 
