@@ -117,13 +117,33 @@ const LexGuardDashboard = () => {
     };
 
     const extractAdvanced = (patterns, fallback = "[NOT DETECTED]") => {
+      // List of US States for priority matching
+      const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming", "NY", "CA", "TX", "WA", "FL", "DE"];
+
       for (const pattern of patterns) {
         const match = text.match(pattern);
         if (match) {
-          let val = (match[1] || match[0]).replace(/^(a|an|the)\s+/i, '').trim();
-          return val.replace(/[.,;]$/, '');
+          let val = (match[1] || match[0]).trim();
+          
+          // Advanced Cleaning: Remove leading articles, trailing punctuation, and dangling legal phrases
+          val = val.replace(/^(a|an|the|this|that|such)\s+/i, '')
+                   .replace(/[.,;:\)]+$/, '')
+                   .replace(/\s+(or|and|including|subject\s+to|as\s+defined).*$/i, '')
+                   .trim();
+
+          // If we found a state abbreviation, expand it
+          if (val === "NY") return "New York";
+          if (val === "CA") return "California";
+          
+          if (val.length > 3) return val;
         }
       }
+
+      // Final attempt: check if any state names are present in the text if jurisdiction is missing
+      for (const state of states) {
+        if (text.includes(state)) return state === "NY" ? "New York" : state === "CA" ? "California" : state;
+      }
+
       return fallback;
     };
 
@@ -138,11 +158,11 @@ const LexGuardDashboard = () => {
     const equity = extractAdvanced([
       /((?:\w+\s+)*(?:\d{1,3}(?:,\d{3})*(?:\.\d+)?|\(\d{1,3}(?:,\d{3})*\))\s*(?:shares|options|units|rsus|tokens))/i,
       /(?:grant\s+of|award\s+of)\s*(\d+(?:,\d{3})*(?:\.\d+)?\s*(?:shares|options|units))/i,
-      /(?:equity|stock)\s*[:=-]?\s*([^,.;\n]{3,30})/i
+      /(?:equity|stock)\s*[:=-]?\s*([^,.;\n\(\)]{3,30})/i
     ], docContext.allDollars.find(d => d.includes('share') || d.includes('option')) || "Not Detected");
 
     const jurisdiction = extractAdvanced([
-      /(?:laws\s+of|jurisdiction\s+of|governed\s+by|laws\s+of\s+the\s+state\s+of)\s+(?!United States)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})/i,
+      /(?:laws\s+of|jurisdiction\s+of|governed\s+by|laws\s+of\s+the\s+state\s+of)\s+(?!United States|and)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})/i,
       /(?!United States)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})\s+(?:law|jurisdiction)/i
     ], docContext.allProperNouns.find(n => n === "Delaware" || n === "California" || n === "New York" || n === "NY") || "Not Found");
 
