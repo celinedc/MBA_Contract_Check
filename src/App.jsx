@@ -2,8 +2,10 @@ import React, { useState, useRef, useMemo } from 'react';
 import { 
   FileText, 
   Upload, 
-  ShieldCheck, 
-  LayoutDashboard, 
+  Shield, 
+  ShieldCheck,
+  Layout, 
+  LayoutDashboard,
   Settings, 
   TrendingUp,
   Cpu,
@@ -16,7 +18,10 @@ import {
   Bell,
   Lock,
   Globe,
-  Database
+  Database,
+  Download,
+  Check,
+  RefreshCw
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import * as pdfjsLib from 'pdfjs-dist';
