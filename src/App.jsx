@@ -374,38 +374,56 @@ This report provides a technical analysis of the employment offer for the positi
       {
         title: "Base Salary & Bonus",
         icon: <TrendingUp size={18} />,
-        desc: "Fixed annual compensation and performance-linked variables.",
-        lookout: ["Clarity on 'Target' vs 'Maximum' bonus.", "Frequency of salary reviews."]
+        desc: contractData?.salary ? `Your salary of $${contractData.salary.toLocaleString()} is paired with: ${contractData.bonus}.` : "Fixed annual compensation and performance-linked variables.",
+        lookout: [
+          `Market Grade: ${contractData?.level || 'Professional'}.`,
+          contractData?.bonus?.includes('Not') ? "Request a formal bonus structure (10-20% target is standard for MBAs)." : "Ensure KPIs are objective and not purely discretionary."
+        ]
       },
       {
         title: "Equity & Stock Options",
         icon: <Database size={18} />,
-        desc: "Ownership stakes including RSUs, ISOs, or NSOs.",
-        lookout: ["Vesting schedule (Standard: 4yr/1yr cliff).", "Acceleration triggers."]
+        desc: contractData?.equity !== "Not Detected" ? `Identified: ${contractData.equity}.` : "No equity detected in this contract.",
+        lookout: [
+          "Vesting: Standard is 4yr with a 1yr cliff.",
+          "Check for 'Double-Trigger' acceleration in case of acquisition."
+        ]
       },
       {
-        title: "Non-Compete Clauses",
-        icon: <ShieldCheck size={18} />,
-        desc: "Restrictions on working for competitors after departure.",
-        lookout: ["Geographic scope.", "Duration (12 months is the market ceiling)."]
+        title: "Termination Status",
+        icon: <RefreshCw size={18} />,
+        desc: contractData?.terminationType?.toLowerCase().includes('at will') ? "Status: At-Will. Either party can terminate without specific cause." : `Status: ${contractData?.terminationType || 'Contractual'}.`,
+        lookout: [
+          "At-will status provides flexibility but zero notice security.",
+          "Negotiate for a 30-60 day notice period if possible."
+        ]
       },
       {
         title: "Intellectual Property (IP)",
         icon: <Globe size={18} />,
-        desc: "Ownership of work created during employment.",
-        lookout: ["'Work for Hire' scope.", "Carve-outs for pre-existing inventions."]
+        desc: `Scope: ${contractData?.ipRights || 'Standard Assignment'}.`,
+        lookout: [
+          contractData?.ipRights?.toLowerCase().includes('proprietary') ? "Proprietary Rights means the company owns anything created 'within the scope' of your work." : "Check for 'Work for Hire' vs 'Assignment' nuances.",
+          "Ensure pre-existing inventions are excluded (Exclusion List)."
+        ]
       },
       {
-        title: "Confidentiality (NDA)",
-        icon: <Lock size={18} />,
-        desc: "Protection of proprietary company information.",
-        lookout: ["Duration of survival.", "Definition of 'Confidential Information'."]
-      },
-      {
-        title: "Severance & Notice",
+        title: "Time Off (PTO)",
         icon: <FileText size={18} />,
-        desc: "Protections and requirements during termination.",
-        lookout: ["Months of pay based on years of service.", "Benefits continuation."]
+        desc: `Policy: ${contractData?.vacation || 'Standard'}.`,
+        lookout: [
+          contractData?.vacation?.toLowerCase().includes('unlimited') ? "Unlimited PTO is subject to manager approval; clarify the 'reasonability' clause." : "Check if unused days roll over or are 'use-it-or-lose-it'.",
+          "Confirm if PTO is paid out upon termination (State law varies)."
+        ]
+      },
+      {
+        title: "Non-Compete Clauses",
+        icon: <ShieldCheck size={18} />,
+        desc: contractData?.nonCompete !== "Not Found" ? `Restriction: ${contractData.nonCompete}.` : "No non-compete restriction detected.",
+        lookout: [
+          "Geographic scope should be narrow (State vs. National).",
+          "Duration: 12 months is the market ceiling for non-executives."
+        ]
       }
     ];
 
