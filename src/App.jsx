@@ -525,10 +525,14 @@ This report provides a technical analysis of the employment offer for the positi
     if (analysisResult && markdownText) {
       return (
         <div className="audit-report" style={{ animation: 'slideUp 0.5s ease-out' }}>
-          <div className="glass" style={{ padding: '3.5rem', marginBottom: '2.5rem', minHeight: '400px' }}>
-            <ReactMarkdown className="markdown-content">
-              {markdownText}
-            </ReactMarkdown>
+          <div className="glass" style={{ padding: '3.5rem', marginBottom: '2.5rem', minHeight: '400px', color: 'var(--text-primary)' }}>
+            {analysisResult && (
+              <div className="markdown-content">
+                <ReactMarkdown>
+                  {markdownText}
+                </ReactMarkdown>
+              </div>
+            )}
           </div>
           <div style={{ textAlign: 'center', paddingBottom: '4rem' }}>
             <button 
