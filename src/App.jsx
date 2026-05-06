@@ -519,17 +519,22 @@ This report provides a technical analysis of the employment offer for the positi
   );
 
   const renderLegalReport = () => {
-    if (analysisResult) {
+    // Safety check to prevent crash if analysisResult is malformed
+    const markdownText = analysisResult?.markdown || '';
+    
+    if (analysisResult && markdownText) {
       return (
-        <div className="audit-report">
-          <div className="glass" style={{ padding: '3.5rem', marginBottom: '2.5rem' }}>
-            <ReactMarkdown className="markdown-content">{analysisResult.markdown}</ReactMarkdown>
+        <div className="audit-report" style={{ animation: 'slideUp 0.5s ease-out' }}>
+          <div className="glass" style={{ padding: '3.5rem', marginBottom: '2.5rem', minHeight: '400px' }}>
+            <ReactMarkdown className="markdown-content">
+              {markdownText}
+            </ReactMarkdown>
           </div>
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', paddingBottom: '4rem' }}>
             <button 
               className="btn-primary" 
               onClick={() => {
-                const blob = new Blob([analysisResult.markdown], { type: 'text/markdown' });
+                const blob = new Blob([markdownText], { type: 'text/markdown' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
