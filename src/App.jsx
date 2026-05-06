@@ -235,7 +235,12 @@ const LexGuardDashboard = () => {
       jurisdiction: jurisdiction,
       level: level,
       benchmark: currentBenchmark,
-      title: cleanTitle
+      title: cleanTitle,
+      equity: equity,
+      vacation: vacation,
+      severance: severance,
+      bonus: bonus,
+      clawback: clawback
     };
 
     const markdown = `
@@ -460,6 +465,40 @@ This report provides a technical analysis of the employment offer for the positi
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Jurisdiction data required for tax estimation.</p>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Contract Data Snapshot */}
+        <div className="glass" style={{ padding: '2.5rem', marginBottom: '3rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '2.5rem' }}>
+            <FileText color="var(--accent-primary)" size={20} />
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Extracted Contract Snapshot</h3>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem' }}>
+            <div>
+              <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>Position</span>
+              <span style={{ fontSize: '1rem', fontWeight: 600 }}>{contractData?.title || 'Not Detected'}</span>
+            </div>
+            <div>
+              <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>Base Salary</span>
+              <span style={{ fontSize: '1rem', fontWeight: 600 }}>{contractData?.salary ? `$${contractData.salary.toLocaleString()}` : 'Not Detected'}</span>
+            </div>
+            <div>
+              <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>Equity / Stock</span>
+              <span style={{ fontSize: '1rem', fontWeight: 600 }}>{contractData?.equity || 'Not Detected'}</span>
+            </div>
+            <div>
+              <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>Vacation / PTO</span>
+              <span style={{ fontSize: '1rem', fontWeight: 600 }}>{contractData?.vacation || 'Not Detected'}</span>
+            </div>
+            <div>
+              <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>Jurisdiction</span>
+              <span style={{ fontSize: '1rem', fontWeight: 600 }}>{contractData?.jurisdiction || 'Not Detected'}</span>
+            </div>
+            <div>
+              <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>Severance</span>
+              <span style={{ fontSize: '1rem', fontWeight: 600 }}>{contractData?.severance || 'Not Detected'}</span>
+            </div>
           </div>
         </div>
 
