@@ -171,6 +171,12 @@ const LexGuardDashboard = () => {
       /(?:health|dental|vision|401k)\s+(?:plans?|benefits?)/i
     ], "Standard Package");
 
+    const vacation = extractAdvanced([
+      /(?:vacation|pto|time\s+off|paid\s+leave)\s*[:=-]?\s*([^,.;\n]{3,60})/i,
+      /(\d+\s*(?:day|week)s?)\s+(?:of\s+)?(?:vacation|pto)/i,
+      /(?:unlimited)\s+(?:vacation|pto|time\s+off)/i
+    ], "Not Explicitly Defined");
+
     const severance = extractAdvanced([
       /(\d+\s*(?:month|day|week)s?)\s+(?:of\s+)?(?:base\s+)?severance/i,
       /(?:severance|termination)\s+(?:payment|benefit|pay)\s*[:=-]?\s*([^,.;\n]{3,20})/i
@@ -249,8 +255,10 @@ This report provides a technical analysis of the employment offer for the positi
 
 #### IV. Benefits & Additional Perks
 *   **Package:** **${benefits}**.
-*   **Nuance:** While health and retirement are standard, the "Flexibility" terms (Remote/Hybrid) are now considered core deal points. 
-*   **Observation:** The document explicitly mentions: *"${text.match(/remote|hybrid|office\s\d\sdays/i)?.[0] || 'Standard Office Attendance'}"*.
+*   **Time Off (PTO):** **${vacation}**.
+*   **Nuance:** While health and retirement are standard, the "Flexibility" and "Time Off" terms are now considered core deal points for top talent. 
+*   **Observation:** The document explicitly mentions: **${vacation}**. ${vacation.toLowerCase().includes('unlimited') ? "Unlimited PTO is a common startup perk designed to offer flexibility, though it requires proactive management to ensure actual rest is taken." : "An accrual-based policy provides a guaranteed 'bank' of days, which in many jurisdictions must be paid out upon termination."}
+*   **Hybrid Terms:** *"${text.match(/remote|hybrid|office\s\d\sdays/i)?.[0] || 'Standard Office Attendance'}"*.
 
 #### V. Clawback Conditions
 *   **Status:** **${clawback}**.
