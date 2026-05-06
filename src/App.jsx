@@ -117,9 +117,6 @@ const LexGuardDashboard = () => {
     };
 
     const extractAdvanced = (patterns, fallback = "[NOT DETECTED]") => {
-      // List of US States for priority matching
-      const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming", "NY", "CA", "TX", "WA", "FL", "DE"];
-
       for (const pattern of patterns) {
         const match = text.match(pattern);
         if (match) {
@@ -131,21 +128,14 @@ const LexGuardDashboard = () => {
                    .replace(/\s+(or|and|including|subject\s+to|as\s+defined).*$/i, '')
                    .trim();
 
-          // If we found a state abbreviation, expand it
-          if (val === "NY") return "New York";
-          if (val === "CA") return "California";
-          
-          if (val.length > 3) return val;
+          if (val.length > 2) return val;
         }
       }
-
-      // Final attempt: check if any state names are present in the text if jurisdiction is missing
-      for (const state of states) {
-        if (text.includes(state)) return state === "NY" ? "New York" : state === "CA" ? "California" : state;
-      }
-
       return fallback;
     };
+
+    // List of US States for priority matching
+    const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming", "NY", "CA", "TX", "WA", "FL", "DE"];
 
     // Refined Extraction Logic
     // Advanced Cross-Reference Extraction (Integrated)
@@ -164,7 +154,16 @@ const LexGuardDashboard = () => {
     const jurisdiction = extractAdvanced([
       /(?:laws\s+of|jurisdiction\s+of|governed\s+by|laws\s+of\s+the\s+state\s+of)\s+(?!United States|and)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})/i,
       /(?!United States)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})\s+(?:law|jurisdiction)/i
-    ], docContext.allProperNouns.find(n => n === "Delaware" || n === "California" || n === "New York" || n === "NY") || "Not Found");
+    ], "Not Found");
+
+    // Post-Extraction Refinement for Jurisdiction
+    let cleanJurisdiction = jurisdiction;
+    if (jurisdiction === "Not Found" || jurisdiction.length < 3) {
+      const stateMatch = states.find(s => text.includes(s));
+      if (stateMatch) cleanJurisdiction = stateMatch;
+    }
+    if (cleanJurisdiction === "NY") cleanJurisdiction = "New York";
+    if (cleanJurisdiction === "CA") cleanJurisdiction = "California";
 
     const rawTitle = extractAdvanced([
       /(?:title|position|role|employed\s+as)\s*[:=-]?\s*([A-Z][a-zA-Z\s,]{3,60})(?=[.;\n]|\s{2,}|$)/i,
@@ -232,7 +231,7 @@ const LexGuardDashboard = () => {
 
     const data = {
       salary: numericSalary,
-      jurisdiction: jurisdiction,
+      jurisdiction: cleanJurisdiction,
       level: level,
       benchmark: currentBenchmark,
       title: cleanTitle,
@@ -245,7 +244,7 @@ const LexGuardDashboard = () => {
 
     const markdown = `
 # Employment Audit Report: ${cleanTitle}
-**Role Grade:** ${level} | **Jurisdiction:** ${jurisdiction}
+**Role Grade:** ${level} | **Jurisdiction:** ${cleanJurisdiction}
 
 ---
 
@@ -276,7 +275,7 @@ This report provides a technical analysis of the employment offer for the positi
 #### III. Intellectual Property & Restrictive Covenants
 *   **IP Assignment:** The contract includes a standard 'Work for Hire' clause, assigning all rights to the Company.
 *   **Non-Compete/Solicit:** **${nonCompete}**.
-*   **Reporting:** A **${nonCompete}** restriction can effectively 'freeze' a candidate in their niche. In ${jurisdiction}, enforceability varies significantly based on the reasonableness of the scope and duration.
+*   **Reporting:** A **${nonCompete}** restriction can effectively 'freeze' a candidate in their niche. In ${cleanJurisdiction}, enforceability varies significantly based on the reasonableness of the scope and duration.
 
 #### IV. Benefits & Additional Perks
 *   **Package:** **${benefits}**.
