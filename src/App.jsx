@@ -120,6 +120,8 @@ const LexGuardDashboard = () => {
       for (const pattern of patterns) {
         const match = text.match(pattern);
         if (match) {
+          let val = (match[1] || match[0]).trim();
+          
           // Advanced Cleaning: Multi-pass scrub for trailing noise and legal junk
           val = val.replace(/^(a|an|the|this|that|such)\s+/i, '');
           
