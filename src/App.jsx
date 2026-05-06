@@ -38,6 +38,8 @@ const LexGuardDashboard = () => {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [fileName, setFileName] = useState('');
+  const [analysisStep, setAnalysisStep] = useState('');
+  const [progress, setProgress] = useState(0);
   const fileInputRef = useRef(null);
 
   const handleFileUpload = async (event) => {
@@ -95,20 +97,28 @@ const LexGuardDashboard = () => {
 
   const triggerAnalysis = (text) => {
     if (!text) return;
-    setIsCategorizing(true);
+    setIsAnalyzing(true);
+    setProgress(10);
+    setAnalysisStep('Initializing Legal Engine...');
     
-    // Simulate deep scanning of the document
     setTimeout(() => {
-      setIsCategorizing(false);
-      setIsAnalyzing(true);
+      setProgress(40);
+      setAnalysisStep('Scanning Clauses & Operational Risks...');
       
       setTimeout(() => {
-        setIsAnalyzing(false);
-        const result = generateMockAnalysis(text);
-        setAnalysisResult(result.markdown);
-        setContractData(result.data);
-      }, 2000);
-    }, 1500);
+        setProgress(70);
+        setAnalysisStep('Benchmarking Compensation against Market Data...');
+        
+        setTimeout(() => {
+          setProgress(100);
+          setAnalysisStep('Audit Complete');
+          const result = generateMockAnalysis(text);
+          setAnalysisResult(result);
+          setContractData(result.data);
+          setIsAnalyzing(false);
+        }, 1200);
+      }, 1000);
+    }, 800);
   };
 
   const generateMockAnalysis = (text) => {
