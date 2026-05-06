@@ -130,7 +130,8 @@ const LexGuardDashboard = () => {
           do {
             previousVal = val;
             val = val.replace(/[.,;:\)\s]+$/, '') // Trailing punctuation/parens
-                     .replace(/\s+(or|and|including|subject\s+to|as\s+defined|and\s+construed).*$/i, '') // Legal conjunctions
+                     .replace(/\s+(or|and|including|subject\s+to|as\s+defined|and\s+construed|benefit\s+plan|the\s+grant\s+of|employee\s+shall\s+be).*$/i, '') // Legal conjunctions/junk
+                     .replace(/^(or|and)\s+/i, '') // Leading conjunctions
                      .trim();
           } while (val !== previousVal);
 
@@ -152,9 +153,9 @@ const LexGuardDashboard = () => {
     ], docContext.allDollars[0] || "Not Found");
 
     const equity = extractAdvanced([
-      /((?:\w+\s+)*(?:\d{1,3}(?:,\d{3})*(?:\.\d+)?|\(\d{1,3}(?:,\d{3})*\))\s*(?:shares|options|units|rsus|tokens))/i,
-      /(?:grant\s+of|award\s+of)\s*(\d+(?:,\d{3})*(?:\.\d+)?\s*(?:shares|options|units))/i,
-      /(?:equity|stock)\s*[:=-]?\s*([^,.;\n\(\)]{3,30})/i
+      /(?:eligible\s+to\s+receive|grant\s+of|award\s+of)\s+([0-9,]+\s+(?:shares|options|units|rsus))/i,
+      /([0-9,]+\s+(?:shares|options|units|rsus))/i,
+      /(?:grant\s+of|award\s+of)\s+([^,.;]{3,60})/i
     ], docContext.allDollars.find(d => d.includes('share') || d.includes('option')) || "Not Detected");
 
     const jurisdiction = extractAdvanced([
@@ -544,7 +545,13 @@ This report provides a technical analysis of the employment offer for the positi
                     </li>
                   ))}
                 </ul>
-              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const renderSettings = () => (
     <div className="audit-report" style={{ animation: 'slideUp 0.5s ease-out' }}>
       <div className="glass" style={{ display: 'grid', gridTemplateColumns: '240px 1fr', minHeight: '500px', overflow: 'hidden' }}>
