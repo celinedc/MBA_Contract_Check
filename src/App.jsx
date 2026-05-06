@@ -321,16 +321,54 @@ This report provides a technical analysis of the employment offer for the positi
   };
 
   const renderBenchmarks = () => {
-    const calculateTax = (gross, state) => {
-      const fedRate = gross > 150000 ? 0.18 : 0.125;
-      const stateRate = state.toLowerCase().includes('new york') ? 0.07 : 0.05;
-      const totalTax = gross * (fedRate + stateRate + 0.0765);
+    const calculateTaxDetailed = (gross, state) => {
+      const s = state.toLowerCase();
+      
+      // Federal (Rough Progressive Approximation for 2024/2025)
+      let fed = 0;
+      if (gross > 191950) fed = gross * 0.24;
+      else if (gross > 100525) fed = gross * 0.22;
+      else if (gross > 47150) fed = gross * 0.12;
+      else fed = gross * 0.10;
+
+      // FICA (Social Security & Medicare)
+      const fica = gross * 0.0765;
+
+      // State & City Estimates
+      let stateTax = 0;
+      let cityTax = 0;
+      
+      if (s.includes('new york') || s.includes('ny')) {
+        stateTax = gross * 0.06;
+        if (s.includes('new york city') || s.includes('nyc')) {
+          cityTax = gross * 0.038;
+        }
+      } else if (s.includes('california') || s.includes('ca')) {
+        stateTax = gross * 0.085;
+      } else if (s.includes('massachusetts') || s.includes('ma')) {
+        stateTax = gross * 0.05;
+      } else if (s.includes('texas') || s.includes('tx') || s.includes('washington') || s.includes('wa') || s.includes('florida') || s.includes('fl')) {
+        stateTax = 0;
+      } else {
+        stateTax = gross * 0.045; // National average fallback
+      }
+
+      const totalTax = fed + fica + stateTax + cityTax;
+      
       return {
+        gross,
+        fed,
+        fica,
+        stateTax,
+        cityTax,
+        totalTax,
         net: gross - totalTax,
         monthly: (gross - totalTax) / 12,
         state: state
       };
     };
+
+    const taxInfo = contractData?.salary ? calculateTaxDetailed(contractData.salary, contractData.jurisdiction) : null;
 
     const staples = [
       {
@@ -371,7 +409,7 @@ This report provides a technical analysis of the employment offer for the positi
       }
     ];
 
-    const taxInfo = contractData?.salary ? calculateTax(contractData.salary, contractData.jurisdiction) : null;
+    const taxInfo = contractData?.salary ? calculateTaxDetailed(contractData.salary, contractData.jurisdiction) : null;
 
     return (
       <div className="audit-report" style={{ animation: 'slideUp 0.5s ease-out' }}>
@@ -424,9 +462,31 @@ This report provides a technical analysis of the employment offer for the positi
               <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Post-Tax estimation</h3>
             </div>
             {taxInfo ? (
-              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.25rem', borderRadius: '8px' }}>
-                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '4px' }}>Monthly Net</span>
-                <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>${Math.round(taxInfo.monthly).toLocaleString()}</span>
+              <div>
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.25rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+                  <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '4px' }}>Annual Net Income</span>
+                  <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>${Math.round(taxInfo.net).toLocaleString()}</span>
+                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--success)', marginTop: '4px' }}>Monthly: ${Math.round(taxInfo.monthly).toLocaleString()}</span>
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div style={{ fontSize: '0.8rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Federal:</span>
+                    <span style={{ float: 'right' }}>-${Math.round(taxInfo.fed).toLocaleString()}</span>
+                  </div>
+                  <div style={{ fontSize: '0.8rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>FICA:</span>
+                    <span style={{ float: 'right' }}>-${Math.round(taxInfo.fica).toLocaleString()}</span>
+                  </div>
+                  <div style={{ fontSize: '0.8rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>State ({taxInfo.state}):</span>
+                    <span style={{ float: 'right' }}>-${Math.round(taxInfo.stateTax).toLocaleString()}</span>
+                  </div>
+                  <div style={{ fontSize: '0.8rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Local/City:</span>
+                    <span style={{ float: 'right' }}>-${Math.round(taxInfo.cityTax).toLocaleString()}</span>
+                  </div>
+                </div>
               </div>
             ) : <p>Waiting for data...</p>}
           </div>
