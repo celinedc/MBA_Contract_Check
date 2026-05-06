@@ -267,7 +267,7 @@ const LexGuardDashboard = () => {
 
     const markdown = `
 # Employment Audit Report: ${rawTitle}
-**Role Grade:** ${level} | **Jurisdiction:** ${cleanJurisdiction}
+**Role Grade:** *${level}* | **Jurisdiction:** *${cleanJurisdiction}*
 
 ---
 
@@ -276,36 +276,36 @@ const LexGuardDashboard = () => {
 This report provides a technical analysis of the employment offer for the position of **${rawTitle}**.
 
 **Executive Key Findings:**
-*   **Compensation Profile:** Total cash compensation is anchored at **${salary}**. This is **${isAboveBenchmark ? 'exceptionally strong' : isBelowBenchmark ? 'below market floor' : 'solidly positioned'}** for a ${level}-level role.
-*   **Operational Risk:** The ${nonCompete === "Not Found" ? 'lack of a restrictive non-compete' : `presence of a **${nonCompete}** non-compete`} is a critical factor for your future career mobility.
-*   **Equity Exposure:** ${equity === "Not Detected" ? "No equity grant was identified, which is atypical for startup-grade offers." : `Identified **${equity}** with standard vesting logic.`}
+*   **Compensation Profile:** Total cash compensation is anchored at *${salary}*. This is *${isAboveBenchmark ? 'exceptionally strong' : isBelowBenchmark ? 'below market floor' : 'solidly positioned'}* for a ${level}-level role.
+*   **Operational Risk:** The ${nonCompete === "Not Found" ? 'lack of a restrictive non-compete' : `presence of a *${nonCompete}* non-compete`} is a critical factor for your future career mobility.
+*   **Equity Exposure:** ${equity === "Not Detected" ? "No equity grant was identified, which is atypical for startup-grade offers." : `Identified *${equity}* with standard vesting logic.`}
 
 ---
 
 ### 2. Clause-by-Clause Legal and Operational Report
 
 #### I. Compensation & Bonus Structure
-*   **Base Salary:** **${salary}** per annum.
-*   **Incentive Pay:** **${bonus}**.
+*   **Base Salary:** *${salary}* per annum.
+*   **Incentive Pay:** *${bonus}*.
 *   **Technical Reporting:** ${bonus === "Not Explicitly Defined" ? "The contract lacks a structured bonus formula." : `Performance criteria should be explicitly tied to KPIs to avoid discretionary ambiguity.`}
-*   **Equity Vesting:** ${equity !== "Not Detected" ? `The grant of **${equity}** typically follows a 4-year cycle with a 1-year cliff.` : "N/A"}
+*   **Equity Vesting:** ${equity !== "Not Detected" ? `The grant of *${equity}* typically follows a 4-year cycle with a 1-year cliff.` : "N/A"}
 
 #### II. Severance & Termination Conditions
-*   **Terms:** **${severance}**.
-*   **Status:** **${terminationType}**.
+*   **Terms:** *${severance}*.
+*   **Status:** *${terminationType}*.
 *   **Impact:** ${terminationType.toLowerCase().includes('at will') ? "At-will employment allows either party to terminate the relationship at any time, which provides maximum flexibility but minimal notice security." : "The contract establishes a protected term window."}
 
 #### III. Intellectual Property & Restrictive Covenants
-*   **IP Assignment:** **${ipRights}**.
-*   **Non-Compete/Solicit:** **${nonCompete}**.
+*   **IP Assignment:** *${ipRights}*.
+*   **Non-Compete/Solicit:** *${nonCompete}*.
 
 #### IV. Benefits & Additional Perks
-*   **Package:** **${benefits}**.
-*   **Time Off (PTO):** **${vacation}**.
+*   **Package:** *${benefits}*.
+*   **Time Off (PTO):** *${vacation}*.
 *   **Observation:** ${vacation.toLowerCase().includes('unlimited') ? "Unlimited PTO is a modern benefit that offers flexibility, though actual usage is subject to 'ultimate decision' and reasonability clauses as seen in this document." : "An accrual-based policy provides a guaranteed 'bank' of days."}
 
 #### V. Clawback Conditions
-*   **Status:** **${clawback}**.
+*   **Status:** *${clawback}*.
 `;
 
     return { markdown, data };
