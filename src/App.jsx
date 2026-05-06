@@ -545,13 +545,6 @@ This report provides a technical analysis of the employment offer for the positi
                   ))}
                 </ul>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   const renderSettings = () => (
     <div className="audit-report" style={{ animation: 'slideUp 0.5s ease-out' }}>
       <div className="glass" style={{ display: 'grid', gridTemplateColumns: '240px 1fr', minHeight: '500px', overflow: 'hidden' }}>
@@ -567,7 +560,7 @@ This report provides a technical analysis of the employment offer for the positi
           </button>
         </div>
         <div style={{ padding: '3rem' }}>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '2rem', color: '#fff', textTransform: 'none', letterSpacing: '0' }}>Personal Profile</h3>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '2rem', color: '#fff' }}>Personal Profile</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2.5rem' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '10px' }}>Full Name</label>
@@ -578,158 +571,256 @@ This report provides a technical analysis of the employment offer for the positi
               <input type="email" className="textarea-field" style={{ padding: '12px', margin: 0, height: '48px' }} defaultValue="celine@example.com" />
             </div>
           </div>
-          <div style={{ marginBottom: '2.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '10px' }}>Default Analysis Persona</label>
-            <select className="textarea-field" style={{ padding: '12px', margin: 0, height: '48px', appearance: 'none' }}>
-              <option>Corporate Executive</option>
-              <option>Startup Founder</option>
-              <option>Engineering Manager</option>
-            </select>
-          </div>
           <button className="btn-primary" style={{ height: '48px', padding: '0 32px' }}>Update Profile</button>
         </div>
       </div>
     </div>
   );
 
-  const renderDashboard = () => (
-    <>
-      {!analysisResult ? (
-        <div className="glass upload-card" style={{ maxWidth: '800px', margin: '0 auto', animation: 'slideUp 0.5s ease-out' }}>
-          <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '1rem', background: 'linear-gradient(to right, #fff, var(--text-secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Negotiate from a Position of Strength
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: 1.6, maxWidth: '600px', margin: '0 auto 2.5rem auto' }}>
-              Most people sign employment contracts without reading them. <strong>Contract Intelligence</strong> gives you the market data, tax math, and clause-level audit you need to optimize your offer.
-            </p>
-            <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)', marginBottom: '2.5rem' }}></div>
+  const renderLegalReport = () => {
+    if (analysisResult) {
+      return (
+        <div className="audit-report">
+          <div className="glass markdown-content" style={{ padding: '3.5rem', marginBottom: '2.5rem' }}>
+            <ReactMarkdown>{analysisResult.markdown}</ReactMarkdown>
           </div>
+          <div style={{ textAlign: 'center' }}>
+            <button 
+              className="btn-primary" 
+              onClick={() => {
+                const blob = new Blob([analysisResult.markdown], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `LexGuard_Audit_${contractData?.title?.replace(/\s+/g, '_') || 'Report'}.md`;
+                a.click();
+              }}
+            >
+              <Download size={18} /> Export Technical Audit
+            </button>
+          </div>
+        </div>
+      );
+    }
 
-          <div style={{ marginBottom: '2.5rem' }}>
-            <div style={{ width: '56px', height: '56px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
-              <Upload size={28} color="var(--accent-primary)" />
-            </div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.75rem' }}>Analyze New Contract</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2.5rem' }}>
-              Select a PDF or paste your contract text to identify legal risks and benchmarking data.
-            </p>
-            
-            <div style={{ marginBottom: '2rem' }}>
-              <button 
-                className="btn-primary" 
-                style={{ width: '100%', justifyContent: 'center', height: '48px' }}
-                onClick={() => fileInputRef.current.click()}
-                disabled={isExtracting || isAnalyzing || isCategorizing}
-              >
-                {isExtracting ? <Loader2 className="spinner" size={20} /> : <FileUp size={20} />}
-                {isExtracting ? 'Extracting Data...' : 'Upload PDF Contract'}
-              </button>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                style={{ display: 'none' }} 
-                accept=".pdf" 
-                onChange={handleFileUpload}
-              />
-            </div>
+    return (
+      <div className="audit-report">
+        <div style={{ marginBottom: '3rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.75rem' }}>Clause Explorer & Operational Impact</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Understanding common employment contract architectures and their long-term effects.</p>
+        </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '2rem 0', color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }}></div>
-              <span>OR PASTE TEXT</span>
-              <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)' }}></div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+          {[
+            {
+              title: "IP Assignment & Work for Hire",
+              startup: "Total assignment of all ideas, even those developed on weekends. Essential for Series A due diligence.",
+              corporate: "Narrower scope, often limited to company-related business. Standard in consulting/banking.",
+              impact: "Can prevent you from starting a side project or owning personal inventions."
+            },
+            {
+              title: "Non-Compete & Restrictive Covenants",
+              startup: "Often aggressive (12-24 months) to prevent engineers from jumping to competitors with trade secrets.",
+              corporate: "Varies by seniority. Often unenforceable in CA/NY, but can impact 'Garden Leave' payments.",
+              impact: "Effectively freezes your ability to work in your specialized niche for the duration."
+            },
+            {
+              title: "Acceleration of Vesting",
+              startup: "Single-trigger or Double-trigger acceleration upon acquisition. Critical for founders/early hires.",
+              corporate: "N/A - Cash-heavy packages rarely feature acceleration outside of C-suite stock units.",
+              impact: "Determines if your equity becomes liquid or vanishes during a company exit."
+            },
+            {
+              title: "Termination 'For Cause' Nuances",
+              startup: "Vague 'disruption' or 'cultural fit' clauses can sometimes be used to avoid severance.",
+              corporate: "Strict legal definitions: felony conviction, gross negligence, or material breach.",
+              impact: "Controls your eligibility for severance and COBRA benefits during a transition."
+            }
+          ].map((clause, idx) => (
+            <div key={idx} className="glass" style={{ padding: '2rem' }}>
+              <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1.25rem', color: 'var(--accent-primary)' }}>{clause.title}</h4>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>Startup Approach</span>
+                <p style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>{clause.startup}</p>
+              </div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>Corporate Approach</span>
+                <p style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>{clause.corporate}</p>
+              </div>
+              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', borderLeft: '2px solid var(--accent-secondary)' }}>
+                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--accent-secondary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>Operational Impact</span>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{clause.impact}</p>
+              </div>
             </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
-            <textarea 
+  const renderDashboard = () => (
+    <div style={{ maxWidth: '800px', margin: '0 auto', animation: 'slideUp 0.5s ease-out' }}>
+      <div className="glass upload-card">
+        <div style={{ marginBottom: '3rem', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '1rem', background: 'linear-gradient(to right, #fff, var(--text-secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            Negotiate from a Position of Strength
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: 1.6, maxWidth: '600px', margin: '0 auto 2.5rem auto' }}>
+            Most people sign employment contracts without reading them. <strong>Contract Intelligence</strong> gives you the market data, tax math, and clause-level audit you need to optimize your offer.
+          </p>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border-subtle)', marginBottom: '2.5rem' }}></div>
+        </div>
+
+        <div style={{ marginBottom: '2.5rem' }}>
+          <div style={{ width: '56px', height: '56px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
+            <Upload size={28} color="var(--accent-primary)" />
+          </div>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.75rem' }}>Analyze New Contract</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2.5rem' }}>
+            Select a PDF or paste your contract text to identify legal risks and benchmarking data.
+          </p>
+          
+          <div style={{ marginBottom: '2rem' }}>
+            <textarea
               className="textarea-field"
-              placeholder="Paste contract clauses here..."
+              placeholder="Paste contract text here..."
+              rows={8}
               value={contractText}
               onChange={(e) => setContractText(e.target.value)}
             />
+          </div>
 
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1rem' }}>
             <button 
               className="btn-primary" 
-              style={{ width: '100%', justifyContent: 'center', height: '48px', background: 'white', color: 'black' }}
-              onClick={() => triggerAnalysis(contractText)}
-              disabled={!contractText || isAnalyzing || isExtracting || isCategorizing}
+              onClick={() => generateMockAnalysis(contractText)}
+              disabled={isAnalyzing || (!contractText && !isAnalyzing)}
             >
-              {isCategorizing ? (
+              {isAnalyzing ? (
                 <>
-                  <Loader2 className="spinner" size={20} /> Categorizing...
-                </>
-              ) : isAnalyzing ? (
-                <>
-                  <Loader2 className="spinner" size={20} /> Benchmarking...
+                  <RefreshCw className="spinner" size={18} /> Processing Analysis...
                 </>
               ) : (
-                <>Contract Guard <ArrowRight size={20} /></>
+                <>Analyze Agreement</>
               )}
             </button>
-            
-            {fileName && <p style={{ marginTop: '1.25rem', color: 'var(--accent-primary)', fontSize: '0.85rem', fontWeight: 500 }}>📄 {fileName}</p>}
+            <input
+              type="file"
+              id="pdf-upload"
+              accept=".pdf"
+              style={{ display: 'none' }}
+              onChange={handleFileUpload}
+            />
+            <button 
+              className="btn-primary" 
+              style={{ background: 'transparent', border: '1px solid var(--border-subtle)' }}
+              onClick={() => document.getElementById('pdf-upload').click()}
+              disabled={isAnalyzing}
+            >
+              <Upload size={18} /> Upload PDF
+            </button>
           </div>
         </div>
-      ) : (
-        <div className="audit-report">
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem' }}>
-            <button className="btn-primary" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'white' }} onClick={() => setAnalysisResult(null)}>
-              New Analysis
-            </button>
-            <button className="btn-primary">
-              Download Audit PDF
-            </button>
-          </div>
+      </div>
 
-          <div className="glass" style={{ padding: '4rem' }}>
-            <div className="markdown-content">
-              <ReactMarkdown>{analysisResult}</ReactMarkdown>
-            </div>
+      {isAnalyzing && (
+        <div className="glass" style={{ marginTop: '2rem', padding: '2rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{analysisStep}</span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{progress}%</span>
+          </div>
+          <div style={{ height: '4px', background: 'var(--bg-hover)', borderRadius: '2px', overflow: 'hidden' }}>
+            <div 
+              style={{ 
+                height: '100%', 
+                background: 'var(--accent-primary)', 
+                width: `${progress}%`, 
+                transition: 'width 0.3s ease' 
+              }} 
+            />
           </div>
         </div>
       )}
-    </>
+
+      {analysisResult && !isAnalyzing && (
+        <div className="glass" style={{ marginTop: '2rem', padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ width: '40px', height: '40px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Check size={20} color="var(--success)" />
+            </div>
+            <div>
+              <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>Analysis Complete</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Technical Audit is ready in the Legal Report tab.</div>
+            </div>
+          </div>
+          <button className="btn-primary" style={{ padding: '8px 16px' }} onClick={() => setActiveTab('report')}>
+            View Report
+          </button>
+        </div>
+      )}
+    </div>
   );
 
   return (
     <div className="dashboard-layout">
       <aside className="sidebar">
         <div className="logo">
-          <div style={{ background: 'var(--accent-primary)', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ShieldCheck size={20} color="white" />
-          </div>
-          LexGuard
+          <Shield size={24} color="var(--accent-primary)" />
+          LexGuard Pro
         </div>
         
-        <nav style={{ flex: 1 }}>
-          <a href="#" className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveTab('dashboard'); }}>
-            <LayoutDashboard size={18} /> Dashboard
+        <nav className="nav-links">
+          <a 
+            href="#" 
+            className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+            onClick={(e) => { e.preventDefault(); setActiveTab('dashboard'); }}
+          >
+            <Layout size={18} /> Dashboard
           </a>
-          <a href="#" className={`nav-item ${activeTab === 'benchmarks' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveTab('benchmarks'); }}>
-            <TrendingUp size={18} /> Benchmarks
+          <a 
+            href="#" 
+            className={`nav-item ${activeTab === 'report' ? 'active' : ''}`}
+            onClick={(e) => { e.preventDefault(); setActiveTab('report'); }}
+          >
+            <FileText size={18} /> Legal Report
           </a>
-          <a href="#" className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); setActiveTab('settings'); }}>
+          <a 
+            href="#" 
+            className={`nav-item ${activeTab === 'benchmarks' ? 'active' : ''}`}
+            onClick={(e) => { e.preventDefault(); setActiveTab('benchmarks'); }}
+          >
+            <BarChart3 size={18} /> Benchmarks
+          </a>
+          <a 
+            href="#" 
+            className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+            onClick={(e) => { e.preventDefault(); setActiveTab('settings'); }}
+          >
             <Settings size={18} /> Settings
           </a>
         </nav>
       </aside>
 
       <main className="main-content">
-        <header style={{ marginBottom: '4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
           <div>
             <h1 className="header-title">
-              {activeTab === 'dashboard' ? 'Contract Intelligence' : activeTab === 'benchmarks' ? 'Market Insights' : 'Preferences'}
+              {activeTab === 'dashboard' ? 'MBA Employment Dashboard' : 
+               activeTab === 'report' ? 'Clause-by-Clause Legal Report' : 
+               activeTab === 'benchmarks' ? 'Compensation Benchmarking' :
+               'Account Settings'}
             </h1>
             <p className="header-subtitle">
-              {activeTab === 'dashboard' ? 'Upload and analyze employment agreements with MBA-level precision.' : 'Compare your compensation against real-time industry data.'}
+              {activeTab === 'dashboard' ? 'Upload and manage your employment agreements.' : 
+               activeTab === 'report' ? 'Technical analysis of legal and operational clauses.' : 
+               activeTab === 'benchmarks' ? 'Market data and tax-adjusted income estimation.' :
+               'Manage your personal profile and analysis preferences.'}
             </p>
-          </div>
-          <div className="badge badge-success" style={{ padding: '8px 16px' }}>
-            <div style={{ width: '8px', height: '8px', background: 'var(--success)', borderRadius: '50%' }}></div>
-            AI Core Online
           </div>
         </header>
 
         {activeTab === 'dashboard' && renderDashboard()}
+        {activeTab === 'report' && renderLegalReport()}
         {activeTab === 'benchmarks' && renderBenchmarks()}
         {activeTab === 'settings' && renderSettings()}
       </main>
