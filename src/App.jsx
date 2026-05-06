@@ -130,39 +130,50 @@ const LexGuardDashboard = () => {
     };
 
     const extractAdvanced = (patterns, fallback = "[NOT DETECTED]") => {
+      const candidates = [];
+      
       for (const pattern of patterns) {
         const match = text.match(pattern);
         if (match) {
           let val = (match[1] || match[0]).trim();
-          // Use word boundaries for scrubbing to prevent truncation (e.g., Associate -> ssociate)
-          val = val.replace(/^(a|an|the|this|that|such)\s+/i, '');
+          
+          // multi-pass scrubbing
           let previousVal;
           do {
             previousVal = val;
             val = val.replace(/[.,;:\)\s]+$/, '')
                      .replace(/\s+(or|and|including|subject\s+to|as\s+defined|and\s+construed|benefit\s+plan|the\s+grant\s+of|employee\s+shall\s+be|employee\b|as\s+may|with\s+vaynermedia|vaynermedia|with\b).*$/i, '')
-                     .replace(/^(or|and|Report\s*>|Report:|as\s+a\s+member\s+of\s+the\s+company’s\s+residency\s+program|you\s+will\s+be\s+eligible\s+to\s+participate\s+in\s+the\s+company’s|required\s+by|required\b|with\b)\s+/i, '')
-                     .replace(/,\s*$/, '') // Remove trailing comma after scrubbing
+                     .replace(/^(or|and|Report\s*>|Report:|as\s+a\s+member\s+of\s+the\s+company’s\s+residency\s+program|you\s+will\s+be\s+eligible\s+to\s+participate\s+in\s+the\s+company’s|required\s+by|required\b|with\b|the\s+position\s+of|employed\s+as)\s+/i, '')
+                     .replace(/,\s*$/, '')
                      .trim();
           } while (val !== previousVal);
-          
-          if (val.length > 2) {
-            // Contextual override for Vacation
-            if (val.toLowerCase().includes('unlimited')) return "Unlimited";
-            // More conservative article stripping to avoid clipping (e.g. Associate -> ssociate)
-            val = val.replace(/^(a|an|the|this|that|such)\s+/i, '');
-            // Proper casing for specific fields
-            return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+
+          if (val.length > 1) {
+            // Scoring: shorter is often better (less boilerplate), but needs to be substantive
+            let score = 100 - val.length; 
+            if (/\d/.test(val)) score += 50; // Numbers are usually data
+            if (val.toLowerCase().includes('unlimited')) score += 100;
+            if (val.length > 100) score -= 80; // Too long is likely a paragraph
+            
+            candidates.push({ val, score });
           }
         }
       }
+
+      if (candidates.length > 0) {
+        // Return highest score
+        const best = candidates.sort((a, b) => b.score - a.score)[0].val;
+        // Proper casing
+        if (best.toLowerCase().includes('unlimited')) return "Unlimited";
+        return best.charAt(0).toUpperCase() + best.slice(1);
+      }
+
       return fallback;
     };
 
     const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming", "NY", "CA", "TX", "WA", "FL", "DE"];
-
     const salary = extractAdvanced([
-      /(?:salary|compensation|remuneration|base\s+pay)\s*[:=-]?\s*(?:\(?\s*)?(\$\s?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i,
+      /(?:salary|compensation|remuneration|base\s+pay|base\s+salary)\s*[:=-]?\s*(?:\(?\s*)?(\$\s?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i,
       /(?:rate\s+of)\s*(?:\(?\s*)?(\$\s?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i,
       /(\$\s?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s+(?:per\s+annum|per\s+year|annually)/i
     ], docContext.allDollars[0] || "Not Found");
@@ -178,23 +189,17 @@ const LexGuardDashboard = () => {
       /(?!United States|State|Commonwealth|Required|With)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})\s+(?:law|jurisdiction)/i
     ], "Not Found");
 
-    // Second-pass surgical state resolver
+    // Dynamic Jurisdiction Resolver
     let cleanJurisdiction = jurisdiction;
-    if (jurisdiction.toLowerCase().includes('required by')) {
-      const match = jurisdiction.match(/\b(NY|CA|MA|TX|WA|FL)\b/i);
-      if (match) cleanJurisdiction = match[1].toUpperCase();
-    }
-
-    const genericWords = ["State", "Commonwealth", "City", "County", "Laws", "Jurisdiction"];
-    if (jurisdiction === "Not Found" || genericWords.includes(jurisdiction) || jurisdiction.length < 3) {
+    if (jurisdiction === "Not Found" || jurisdiction.length < 3) {
       const stateMatch = states.find(s => new RegExp(`\\b${s}\\b`, 'i').test(text));
       if (stateMatch) cleanJurisdiction = stateMatch;
     }
-    if (cleanJurisdiction === "NY") cleanJurisdiction = "New York";
-    if (cleanJurisdiction === "CA") cleanJurisdiction = "California";
+    const stateCodeMatch = cleanJurisdiction.match(/\b(NY|CA|MA|TX|WA|FL|DE|IL|GA)\b/i);
+    if (stateCodeMatch) cleanJurisdiction = stateCodeMatch[1].toUpperCase();
 
     const rawTitle = extractAdvanced([
-      /(?:employed\s+as|position\s+of|role\s+of)\s+([A-Za-z\s,]{3,80})(?=\s+(?:with|on|at|for|under|subject|effective|shall)|[.;\n]|$)/i,
+      /(?:employed\s+as|position\s+of|role\s+of|title\s+of)\s+([A-Za-z\s,]{3,80})(?=\s+(?:with|on|at|for|under|subject|effective|shall|pursuant)|[.;\n]|$)/i,
       /(?:title|position|role)\s*[:=-]?\s*([A-Za-z\s,]{3,60})(?=[.;\n]|\s{2,}|$)/i,
       /(?:employed|working)\s+as\s+(?:a|an|the)?\s*([A-Za-z\s,]{3,60})/i
     ], "Professional");
@@ -212,15 +217,16 @@ const LexGuardDashboard = () => {
 
     const benefits = extractAdvanced([
       /(eligible\s+after\s+\d+\s+days)/i,
-      /(\d+\s*day\s+period)/i,
-      /(?:eligible\s+to\s+participate\s+in\s+the\s+company’s\s+[^,.;\n]{3,60})/i,
+      /(\d+\s*day\s+waiting\s+period)/i,
+      /(?:eligible\s+to\s+participate\s+in\s+the\s+company’s\s+[^,.;\n]{3,80})/i,
       /(?:benefits|fringe\s+benefits|perks)\s*[:=-]?\s*([^,.;\n]{3,100})/i
     ], "Standard Package");
 
     const vacation = extractAdvanced([
       /(\d+\s*hours?\s+or\s+\d+\s*(?:day|week)s?\s+for\s+each\s+\d+\s*day\s+period)/i,
       /(?:unlimited)\s+(?:vacation|pto|time\s+off)/i,
-      /(?:vacation|pto|time\s+off|paid\s+leave|vacations\s+and\s+pto)\s*[:=-]?\s*([^,.;\n]{3,60})/i
+      /(?:vacation|pto|time\s+off|paid\s+leave)\s*[:=-]?\s*([^,.;\n]{3,80})/i,
+      /(\d+\s*(?:day|week)s?)\s+(?:of\s+)?(?:vacation|pto)/i
     ], "Standard Accrual");
 
     const terminationType = extractAdvanced([
