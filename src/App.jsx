@@ -156,14 +156,21 @@ const LexGuardDashboard = () => {
     ], docContext.allDollars.find(d => d.includes('share') || d.includes('option')) || "Not Detected");
 
     const jurisdiction = extractAdvanced([
-      /(?:laws\s+of|jurisdiction\s+of|governed\s+by|laws\s+of\s+the\s+state\s+of)\s+(?!United States|and)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})/i,
-      /(?!United States)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})\s+(?:law|jurisdiction)/i
+      /(?:laws\s+of|jurisdiction\s+of|governed\s+by|laws\s+of\s+the\s+state\s+of)\s+(?!United States|and|the|State|Commonwealth)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})/i,
+      /(?!United States|State|Commonwealth)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})\s+(?:law|jurisdiction)/i
     ], "Not Found");
 
     // Post-Extraction Refinement for Jurisdiction
     let cleanJurisdiction = jurisdiction;
-    if (jurisdiction === "Not Found" || jurisdiction.length < 3) {
-      const stateMatch = states.find(s => text.includes(s));
+    const genericWords = ["State", "Commonwealth", "City", "County", "Laws", "Jurisdiction"];
+    
+    if (jurisdiction === "Not Found" || genericWords.includes(jurisdiction) || jurisdiction.length < 3) {
+      // Look for explicit state names in the entire text as a high-fidelity fallback
+      const stateMatch = states.find(s => {
+        // Use word boundaries to avoid partial matches (e.g., "In" in "Indiana")
+        const stateRegex = new RegExp(`\\b${s}\\b`, 'i');
+        return stateRegex.test(text);
+      });
       if (stateMatch) cleanJurisdiction = stateMatch;
     }
     if (cleanJurisdiction === "NY") cleanJurisdiction = "New York";
