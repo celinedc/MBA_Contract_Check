@@ -463,15 +463,42 @@ This report provides a technical analysis of the employment offer for the positi
             </div>
             {taxInfo ? (
               <div>
-                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.25rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
-                  <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '4px' }}>Annual Net Income</span>
-                  <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>${Math.round(taxInfo.net).toLocaleString()}</span>
-                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--success)', marginTop: '4px' }}>Monthly: ${Math.round(taxInfo.monthly).toLocaleString()}</span>
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'baseline' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Take-Home Pay in *{taxInfo.state}*</span>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>${Math.round(taxInfo.net).toLocaleString()}</span>
+                  </div>
+                  
+                  {/* Stacked Tax Bar Chart */}
+                  <div style={{ height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', overflow: 'hidden', display: 'flex', marginBottom: '10px' }}>
+                    <div style={{ width: `${(taxInfo.net / taxInfo.gross) * 100}%`, background: 'var(--success)', height: '100%' }} title="Net Pay"></div>
+                    <div style={{ width: `${(taxInfo.fed / taxInfo.gross) * 100}%`, background: 'var(--accent-primary)', height: '100%', opacity: 0.8 }} title="Federal"></div>
+                    <div style={{ width: `${(taxInfo.fica / taxInfo.gross) * 100}%`, background: 'var(--accent-primary)', height: '100%', opacity: 0.5 }} title="FICA"></div>
+                    <div style={{ width: `${(taxInfo.stateTax / taxInfo.gross) * 100}%`, background: 'var(--warning)', height: '100%' }} title="State"></div>
+                    <div style={{ width: `${(taxInfo.cityTax / taxInfo.gross) * 100}%`, background: 'var(--error)', height: '100%' }} title="Local/City"></div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)' }}></div> Net Income
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-primary)', opacity: 0.8 }}></div> Federal
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--warning)' }}></div> State
+                    </div>
+                    {taxInfo.cityTax > 0 && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--error)' }}></div> City
+                      </div>
+                    )}
+                  </div>
                 </div>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', background: 'rgba(255,255,255,0.02)', padding: '1.25rem', borderRadius: '8px' }}>
                   <div style={{ fontSize: '0.8rem' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Federal:</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>Federal Tax:</span>
                     <span style={{ float: 'right' }}>-${Math.round(taxInfo.fed).toLocaleString()}</span>
                   </div>
                   <div style={{ fontSize: '0.8rem' }}>
@@ -479,13 +506,16 @@ This report provides a technical analysis of the employment offer for the positi
                     <span style={{ float: 'right' }}>-${Math.round(taxInfo.fica).toLocaleString()}</span>
                   </div>
                   <div style={{ fontSize: '0.8rem' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>State ({taxInfo.state}):</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>{taxInfo.state} State:</span>
                     <span style={{ float: 'right' }}>-${Math.round(taxInfo.stateTax).toLocaleString()}</span>
                   </div>
                   <div style={{ fontSize: '0.8rem' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Local/City:</span>
+                    <span style={{ color: 'var(--text-secondary)' }}>Local/City Tax:</span>
                     <span style={{ float: 'right' }}>-${Math.round(taxInfo.cityTax).toLocaleString()}</span>
                   </div>
+                </div>
+                <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--success)', fontWeight: 600 }}>Monthly: ${Math.round(taxInfo.monthly).toLocaleString()}</span>
                 </div>
               </div>
             ) : <p>Waiting for data...</p>}
