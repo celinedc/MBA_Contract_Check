@@ -129,6 +129,7 @@ const LexGuardDashboard = () => {
         const match = text.match(pattern);
         if (match) {
           let val = (match[1] || match[0]).trim();
+          // Use word boundaries for scrubbing to prevent truncation (e.g., Associate -> ssociate)
           val = val.replace(/^(a|an|the|this|that|such)\s+/i, '');
           let previousVal;
           do {
@@ -138,7 +139,12 @@ const LexGuardDashboard = () => {
                      .replace(/^(or|and|Report\s*>|Report:)\s+/i, '')
                      .trim();
           } while (val !== previousVal);
-          if (val.length > 2) return val;
+          
+          if (val.length > 2) {
+            // Contextual override for Vacation
+            if (val.toLowerCase().includes('unlimited')) return "Unlimited";
+            return val;
+          }
         }
       }
       return fallback;
@@ -173,8 +179,8 @@ const LexGuardDashboard = () => {
     if (cleanJurisdiction === "CA") cleanJurisdiction = "California";
 
     const rawTitle = extractAdvanced([
-      /(?:title|position|role|employed\s+as)\s*[:=-]?\s*([A-Z][a-zA-Z\s,]{3,60})(?=[.;\n]|\s{2,}|$)/i,
-      /(?:employed|working)\s+as\s+(?:a|an|the)?\s*([A-Z][a-zA-Z\s,]{3,60})/i
+      /(?:title|position|role|employed\s+as)\s*[:=-]?\s*([A-Za-z\s,]{3,60})(?=[.;\n]|\s{2,}|$)/i,
+      /(?:employed|working)\s+as\s+(?:a|an|the)?\s*([A-Za-z\s,]{3,60})/i
     ], "Professional");
 
     const bonus = extractAdvanced([
@@ -194,10 +200,20 @@ const LexGuardDashboard = () => {
     ], "Standard Package");
 
     const vacation = extractAdvanced([
+      /(?:unlimited)\s+(?:vacation|pto|time\s+off)/i,
       /(?:vacation|pto|time\s+off|paid\s+leave|vacations\s+and\s+pto)\s*[:=-]?\s*([^,.;\n]{3,60})/i,
-      /(\d+\s*(?:day|week)s?)\s+(?:of\s+)?(?:vacation|pto)/i,
-      /(?:unlimited)\s+(?:vacation|pto|time\s+off)/i
-    ], "Not Explicitly Defined");
+      /(\d+\s*(?:day|week)s?)\s+(?:of\s+)?(?:vacation|pto)/i
+    ], "Standard Accrual");
+
+    const terminationType = extractAdvanced([
+      /(at\s*will|at-will)/i,
+      /(?:terminated\s+at\s+any\s+time)/i
+    ], "Contractual Term");
+
+    const ipRights = extractAdvanced([
+      /(work\s+product|proprietary\s+rights|work\s+for\s+hire)/i,
+      /(?:assignment\s+of\s+inventions)/i
+    ], "Standard IP Assignment");
 
     const severance = extractAdvanced([
       /(\d+\s*(?:month|day|week)s?)\s+(?:of\s+)?(?:base\s+)?severance/i,
@@ -243,7 +259,9 @@ const LexGuardDashboard = () => {
       bonus: bonus,
       clawback: clawback,
       nonCompete: nonCompete,
-      benefits: benefits
+      benefits: benefits,
+      terminationType: terminationType,
+      ipRights: ipRights
     };
 
     const markdown = `
@@ -273,16 +291,17 @@ This report provides a technical analysis of the employment offer for the positi
 
 #### II. Severance & Termination Conditions
 *   **Terms:** **${severance}**.
-*   **Impact:** The current definitions appear **${severance.includes('Not Found') ? 'underspecified' : 'standard'}** for the current market.
+*   **Status:** **${terminationType}**.
+*   **Impact:** ${terminationType.toLowerCase().includes('at will') ? "At-will employment allows either party to terminate the relationship at any time, which provides maximum flexibility but minimal notice security." : "The contract establishes a protected term window."}
 
 #### III. Intellectual Property & Restrictive Covenants
-*   **IP Assignment:** Standard 'Work for Hire' clause identified.
+*   **IP Assignment:** **${ipRights}**.
 *   **Non-Compete/Solicit:** **${nonCompete}**.
 
 #### IV. Benefits & Additional Perks
 *   **Package:** **${benefits}**.
 *   **Time Off (PTO):** **${vacation}**.
-*   **Observation:** ${vacation.toLowerCase().includes('unlimited') ? "Unlimited PTO is identified." : "An accrual-based policy is standard."}
+*   **Observation:** ${vacation.toLowerCase().includes('unlimited') ? "Unlimited PTO is a modern benefit that offers flexibility, though actual usage is subject to 'ultimate decision' and reasonability clauses as seen in this document." : "An accrual-based policy provides a guaranteed 'bank' of days."}
 
 #### V. Clawback Conditions
 *   **Status:** **${clawback}**.
@@ -430,6 +449,14 @@ This report provides a technical analysis of the employment offer for the positi
               <div>
                 <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>Severance</span>
                 <span style={{ fontSize: '1rem', fontWeight: 600 }}>{contractData.severance}</span>
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>Termination</span>
+                <span style={{ fontSize: '1rem', fontWeight: 600 }}>{contractData.terminationType}</span>
+              </div>
+              <div>
+                <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '8px' }}>IP Rights</span>
+                <span style={{ fontSize: '1rem', fontWeight: 600 }}>{contractData.ipRights}</span>
               </div>
             </div>
           </div>
