@@ -409,8 +409,6 @@ This report provides a technical analysis of the employment offer for the positi
       }
     ];
 
-    const taxInfo = contractData?.salary ? calculateTaxDetailed(contractData.salary, contractData.jurisdiction) : null;
-
     return (
       <div className="audit-report" style={{ animation: 'slideUp 0.5s ease-out' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '3rem' }}>
