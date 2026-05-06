@@ -143,7 +143,8 @@ const LexGuardDashboard = () => {
           if (val.length > 2) {
             // Contextual override for Vacation
             if (val.toLowerCase().includes('unlimited')) return "Unlimited";
-            return val;
+            // Proper casing for specific fields
+            return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
           }
         }
       }
@@ -620,9 +621,29 @@ This report provides a technical analysis of the employment offer for the positi
         {activeTab === 'report' && renderLegalReport()}
         {activeTab === 'benchmarks' && renderBenchmarks()}
         {activeTab === 'settings' && (
-          <div className="glass" style={{ padding: '3rem' }}>
-            <h3>Account Settings</h3>
-            <p>Manage your professional profile.</p>
+          <div className="audit-report" style={{ animation: 'slideUp 0.5s ease-out' }}>
+            <div className="glass" style={{ padding: '3rem' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '2rem' }}>Professional Profile</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2.5rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px' }}>First Name</label>
+                  <input type="text" className="textarea-field" style={{ padding: '12px', height: '48px', margin: 0 }} defaultValue="Celine" />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px' }}>Last Name</label>
+                  <input type="text" className="textarea-field" style={{ padding: '12px', height: '48px', margin: 0 }} defaultValue="Christory" />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px' }}>Graduation Year</label>
+                  <input type="text" className="textarea-field" style={{ padding: '12px', height: '48px', margin: 0 }} defaultValue="2026" />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px' }}>Email Address</label>
+                  <input type="email" className="textarea-field" style={{ padding: '12px', height: '48px', margin: 0 }} defaultValue="celine@example.com" />
+                </div>
+              </div>
+              <button className="btn-primary" style={{ padding: '0 32px', height: '48px' }}>Update Profile</button>
+            </div>
           </div>
         )}
       </main>
