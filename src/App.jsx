@@ -140,8 +140,8 @@ const LexGuardDashboard = () => {
           do {
             previousVal = val;
             val = val.replace(/[.,;:\)\s]+$/, '')
-                     .replace(/\s+(or|and|including|subject\s+to|as\s+defined|and\s+construed|benefit\s+plan|the\s+grant\s+of|employee\s+shall\s+be|employee\b|as\s+may).*$/i, '')
-                     .replace(/^(or|and|Report\s*>|Report:)\s+/i, '')
+                     .replace(/\s+(or|and|including|subject\s+to|as\s+defined|and\s+construed|benefit\s+plan|the\s+grant\s+of|employee\s+shall\s+be|employee\b|as\s+may|with\s+vaynermedia|vaynermedia).*$/i, '')
+                     .replace(/^(or|and|Report\s*>|Report:|as\s+a\s+member\s+of\s+the\s+company’s\s+residency\s+program|you\s+will\s+be\s+eligible\s+to\s+participate\s+in\s+the\s+company’s|required\s+by)\s+/i, '')
                      .replace(/,\s*$/, '') // Remove trailing comma after scrubbing
                      .trim();
           } while (val !== previousVal);
@@ -174,8 +174,8 @@ const LexGuardDashboard = () => {
     ], docContext.allDollars.find(d => d.includes('share') || d.includes('option')) || "Not Detected");
 
     const jurisdiction = extractAdvanced([
-      /(?:laws\s+of|jurisdiction\s+of|governed\s+by|laws\s+of\s+the\s+state\s+of)\s+(?!United States|and|the|State|Commonwealth)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})/i,
-      /(?!United States|State|Commonwealth)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})\s+(?:law|jurisdiction)/i
+      /(?:laws\s+of|jurisdiction\s+of|governed\s+by|laws\s+of\s+the\s+state\s+of)\s+(?!United States|and|the|State|Commonwealth|Required|Provided)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})/i,
+      /(?!United States|State|Commonwealth|Required)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})\s+(?:law|jurisdiction)/i
     ], "Not Found");
 
     let cleanJurisdiction = jurisdiction;
@@ -188,7 +188,7 @@ const LexGuardDashboard = () => {
     if (cleanJurisdiction === "CA") cleanJurisdiction = "California";
 
     const rawTitle = extractAdvanced([
-      /(?:employed\s+as|position\s+of|role\s+of)\s+([A-Za-z\s,]{3,80})(?=\s+(?:on|at|for|under|subject|effective|shall)|[.;\n]|$)/i,
+      /(?:employed\s+as|position\s+of|role\s+of)\s+([A-Za-z\s,]{3,80})(?=\s+(?:with|on|at|for|under|subject|effective|shall)|[.;\n]|$)/i,
       /(?:title|position|role)\s*[:=-]?\s*([A-Za-z\s,]{3,60})(?=[.;\n]|\s{2,}|$)/i,
       /(?:employed|working)\s+as\s+(?:a|an|the)?\s*([A-Za-z\s,]{3,60})/i
     ], "Professional");
@@ -205,11 +205,14 @@ const LexGuardDashboard = () => {
     ], "None Detected");
 
     const benefits = extractAdvanced([
+      /(?:eligible\s+after\s+\d+\s+days)/i,
+      /(?:eligible\s+to\s+participate\s+in\s+the\s+company’s\s+[^,.;\n]{3,60})/i,
       /(?:benefits|fringe\s+benefits|perks)\s*[:=-]?\s*([^,.;\n]{3,100})/i,
       /(?:health|dental|vision|401k)\s+(?:plans?|benefits?)/i
     ], "Standard Package");
 
     const vacation = extractAdvanced([
+      /(\d+\s*hours?\s+or\s+\d+\s*(?:day|week)s?\s+for\s+each\s+\d+\s*day\s+period)/i,
       /(?:unlimited)\s+(?:vacation|pto|time\s+off)/i,
       /(?:vacation|pto|time\s+off|paid\s+leave|vacations\s+and\s+pto)\s*[:=-]?\s*([^,.;\n]{3,60})/i,
       /(\d+\s*(?:day|week)s?)\s+(?:of\s+)?(?:vacation|pto)/i
