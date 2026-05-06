@@ -120,13 +120,17 @@ const LexGuardDashboard = () => {
       for (const pattern of patterns) {
         const match = text.match(pattern);
         if (match) {
-          let val = (match[1] || match[0]).trim();
+          // Advanced Cleaning: Multi-pass scrub for trailing noise and legal junk
+          val = val.replace(/^(a|an|the|this|that|such)\s+/i, '');
           
-          // Advanced Cleaning: Remove leading articles, trailing punctuation, and dangling legal phrases
-          val = val.replace(/^(a|an|the|this|that|such)\s+/i, '')
-                   .replace(/[.,;:\)]+$/, '')
-                   .replace(/\s+(or|and|including|subject\s+to|as\s+defined).*$/i, '')
-                   .trim();
+          // Scrub until clean
+          let previousVal;
+          do {
+            previousVal = val;
+            val = val.replace(/[.,;:\)\s]+$/, '') // Trailing punctuation/parens
+                     .replace(/\s+(or|and|including|subject\s+to|as\s+defined|and\s+construed).*$/i, '') // Legal conjunctions
+                     .trim();
+          } while (val !== previousVal);
 
           if (val.length > 2) return val;
         }
@@ -164,6 +168,9 @@ const LexGuardDashboard = () => {
     }
     if (cleanJurisdiction === "NY") cleanJurisdiction = "New York";
     if (cleanJurisdiction === "CA") cleanJurisdiction = "California";
+
+    // Final scrub for cleanJurisdiction
+    cleanJurisdiction = cleanJurisdiction.replace(/[.,;:\)\s]+$/, '').trim();
 
     const rawTitle = extractAdvanced([
       /(?:title|position|role|employed\s+as)\s*[:=-]?\s*([A-Z][a-zA-Z\s,]{3,60})(?=[.;\n]|\s{2,}|$)/i,
