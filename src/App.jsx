@@ -35,7 +35,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 import { analyzeContract } from './services/contractService';
 
 
-const LexGuardDashboard = () => {
+const ClauseGuardDashboard = () => {
+
   const [contractText, setContractText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -500,7 +501,8 @@ const LexGuardDashboard = () => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `LexGuard_Audit_Report.md`;
+                a.download = `ClauseGuard_Audit_Report.md`;
+
                 a.click();
               }}
             >
@@ -525,7 +527,8 @@ const LexGuardDashboard = () => {
       <aside className="sidebar">
         <div className="logo" style={{ marginBottom: '2.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <Shield size={24} color="var(--accent-primary)" />
-          LexGuard Pro
+          ClauseGuard Pro
+
         </div>
         <nav className="nav-links">
           <button className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')} style={{ border: 'none', background: 'transparent', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
@@ -581,4 +584,5 @@ const LexGuardDashboard = () => {
   );
 };
 
-export default LexGuardDashboard;
+export default ClauseGuardDashboard;
+
