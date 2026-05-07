@@ -192,16 +192,8 @@ const ClauseGuardDashboard = () => {
         ]
       },
       {
-        title: "Equity & Stock Options",
-        icon: <Database size={18} />,
-        desc: contractData?.equity !== "Not Detected" ? `Identified: ${contractData.equity}.` : "No equity detected in this contract.",
-        lookout: [
-          "Vesting: Standard is 4yr with a 1yr cliff.",
-          "Check for 'Double-Trigger' acceleration in case of acquisition."
-        ]
-      },
-      {
         title: "Termination Status",
+
         icon: <RefreshCw size={18} />,
         desc: contractData?.terminationType?.toLowerCase().includes('at will') ? "Status: At-Will. Either party can terminate without specific cause." : `Status: ${contractData?.terminationType || 'Contractual'}.`,
         lookout: [
@@ -286,13 +278,16 @@ const ClauseGuardDashboard = () => {
           <div className="glass" style={{ padding: '2.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '2rem' }}>
               <Database color="var(--accent-primary)" size={20} />
-              <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Post-Tax estimation</h3>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Salary Post-Tax Estimation</h3>
+
             </div>
             {taxInfo ? (
               <div>
                 <div style={{ marginBottom: '1.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Take-Home Pay in *{taxInfo.state}*</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Take-Home Salary in *{taxInfo.state}*</span>
+
+
                     <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>${Math.round(taxInfo.net).toLocaleString()}</span>
                   </div>
                   
