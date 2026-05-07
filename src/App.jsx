@@ -569,6 +569,11 @@ const ClauseGuardDashboard = () => {
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px' }}>Email Address</label>
                   <input type="email" className="textarea-field" style={{ padding: '12px', height: '48px', margin: 0 }} defaultValue="celine@example.com" />
                 </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '10px' }}>School / University</label>
+                  <input type="text" className="textarea-field" style={{ padding: '12px', height: '48px', margin: 0 }} defaultValue="MIT Sloan" />
+                </div>
+
               </div>
               <button className="btn-primary" style={{ padding: '0 32px', height: '48px' }}>Update Profile</button>
             </div>
