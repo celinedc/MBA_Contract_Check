@@ -24,11 +24,16 @@ import {
   RefreshCw
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
 import * as pdfjsLib from 'pdfjs-dist';
 
 // Use local worker for reliable extraction
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+
+import { analyzeContract } from './services/contractService';
+
 
 const LexGuardDashboard = () => {
   const [contractText, setContractText] = useState('');
@@ -41,6 +46,8 @@ const LexGuardDashboard = () => {
   const [progress, setProgress] = useState(0);
   const [contractData, setContractData] = useState(null);
   const fileInputRef = useRef(null);
+  const pdfTextRef = useRef('');
+
 
   // Auto-scroll to top on tab change
   React.useEffect(() => {
@@ -87,8 +94,10 @@ const LexGuardDashboard = () => {
       }
 
       setContractText(''); // Don't show PDF text in textarea
+      pdfTextRef.current = fullText;
       setIsExtracting(false);
       triggerAnalysis(fullText);
+
     } catch (error) {
       console.error('PDF Extraction Failure:', error);
       setIsExtracting(false);
@@ -96,243 +105,30 @@ const LexGuardDashboard = () => {
     }
   };
 
-  const triggerAnalysis = (text) => {
+  const triggerAnalysis = async (text) => {
     if (!text) return;
     setIsAnalyzing(true);
     setProgress(10);
-    setAnalysisStep('Initializing Legal Engine...');
-    
-    setTimeout(() => {
-      setProgress(40);
-      setAnalysisStep('Scanning Clauses & Operational Risks...');
-      
-      setTimeout(() => {
-        setProgress(70);
-        setAnalysisStep('Benchmarking Compensation against Market Data...');
-        
-        setTimeout(() => {
-          setProgress(100);
-          setAnalysisStep('Audit Complete');
-          const result = generateMockAnalysis(text);
-          setAnalysisResult(result);
-          setContractData(result.data);
-          setIsAnalyzing(false);
-        }, 1200);
-      }, 1000);
-    }, 800);
-  };
-
-  const generateMockAnalysis = (text) => {
-    const docContext = {
-      allDollars: text.match(/\$\s?\d{1,3}(?:,\d{3})*(?:\.\d{2})?/g) || [],
-      allPercentages: text.match(/\d+(?:\.\d+)?%/g) || [],
-      allProperNouns: text.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g) || []
-    };
-
-    const extractAdvanced = (patterns, fallback = "[NOT DETECTED]") => {
-      const candidates = [];
-      
-      for (const pattern of patterns) {
-        const match = text.match(pattern);
-        if (match) {
-          let val = (match[1] || match[0]).trim();
-          
-          // multi-pass scrubbing
-          let previousVal;
-          do {
-            previousVal = val;
-            val = val.replace(/[.,;:\)\s]+$/, '')
-                     .replace(/\s+(or|and|including|subject\s+to|as\s+defined|and\s+construed|benefit\s+plan|the\s+grant\s+of|employee\s+shall\s+be|employee\b|as\s+may|with\s+vaynermedia|vaynermedia|with\b).*$/i, '')
-                     .replace(/^(or|and|Report\s*>|Report:|as\s+a\s+member\s+of\s+the\s+company’s\s+residency\s+program|you\s+will\s+be\s+eligible\s+to\s+participate\s+in\s+the\s+company’s|required\s+by|required\b|with\b|the\s+position\s+of|employed\s+as)\s+/i, '')
-                     .replace(/,\s*$/, '')
-                     .trim();
-          } while (val !== previousVal);
-
-          if (val.length > 1) {
-            // Scoring: shorter is often better (less boilerplate), but needs to be substantive
-            let score = 100 - val.length; 
-            if (/\d/.test(val)) score += 50; // Numbers are usually data
-            if (val.toLowerCase().includes('unlimited')) score += 100;
-            if (val.length > 100) score -= 80; // Too long is likely a paragraph
-            
-            candidates.push({ val, score });
-          }
-        }
-      }
-
-      if (candidates.length > 0) {
-        // Return highest score
-        const best = candidates.sort((a, b) => b.score - a.score)[0].val;
-        // Proper casing
-        if (best.toLowerCase().includes('unlimited')) return "Unlimited";
-        return best.charAt(0).toUpperCase() + best.slice(1);
-      }
-
-      return fallback;
-    };
-
-    const states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming", "NY", "CA", "TX", "WA", "FL", "DE"];
-    const salary = extractAdvanced([
-      /(?:salary|compensation|remuneration|base\s+pay|base\s+salary)\s*[:=-]?\s*(?:\(?\s*)?(\$\s?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i,
-      /(?:rate\s+of)\s*(?:\(?\s*)?(\$\s?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i,
-      /(\$\s?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s+(?:per\s+annum|per\s+year|annually)/i
-    ], docContext.allDollars[0] || "Not Found");
-
-    const equity = extractAdvanced([
-      /(?:eligible\s+to\s+receive|grant\s+of|award\s+of)\s+([0-9,]+\s+(?:shares|options|units|rsus))/i,
-      /([0-9,]+\s+(?:shares|options|units|rsus))/i,
-      /(?:grant\s+of|award\s+of)\s+([^,.;]{3,60})/i
-    ], docContext.allDollars.find(d => d.includes('share') || d.includes('option')) || "Not Detected");
-
-    const jurisdiction = extractAdvanced([
-      /(?:laws\s+of|jurisdiction\s+of|governed\s+by|laws\s+of\s+the\s+state\s+of)\s+(?!United States|and|the|State|Commonwealth|Required|Provided|With)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})/i,
-      /(?!United States|State|Commonwealth|Required|With)([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,1})\s+(?:law|jurisdiction)/i
-    ], "Not Found");
-
-    // Dynamic Jurisdiction Resolver
-    let cleanJurisdiction = jurisdiction;
-    if (jurisdiction === "Not Found" || jurisdiction.length < 3) {
-      const stateMatch = states.find(s => new RegExp(`\\b${s}\\b`, 'i').test(text));
-      if (stateMatch) cleanJurisdiction = stateMatch;
+    setAnalysisStep('Sending contract to Gemini...');
+    try {
+      setProgress(30);
+      setAnalysisStep('Reading clauses and extracting fields...');
+      const result = await analyzeContract(text);
+      setProgress(85);
+      setAnalysisStep('Building your dashboard...');
+      setAnalysisResult(result);
+      setContractData(result.data);
+      setProgress(100);
+      setAnalysisStep('Audit Complete');
+      setActiveTab('report');
+    } catch (err) {
+      console.error('Analysis failed:', err);
+      alert(`Analysis Error: ${err.message}`);
+    } finally {
+      setIsAnalyzing(false);
     }
-    const stateCodeMatch = cleanJurisdiction.match(/\b(NY|CA|MA|TX|WA|FL|DE|IL|GA)\b/i);
-    if (stateCodeMatch) cleanJurisdiction = stateCodeMatch[1].toUpperCase();
-
-    const rawTitle = extractAdvanced([
-      /(?:employed\s+as|position\s+of|role\s+of|title\s+of)\s+([A-Za-z\s,]{3,80})(?=\s+(?:with|on|at|for|under|subject|effective|shall|pursuant)|[.;\n]|$)/i,
-      /(?:title|position|role)\s*[:=-]?\s*([A-Za-z\s,]{3,60})(?=[.;\n]|\s{2,}|$)/i,
-      /(?:employed|working)\s+as\s+(?:a|an|the)?\s*([A-Za-z\s,]{3,60})/i
-    ], "Professional");
-
-    const bonus = extractAdvanced([
-      /(?:bonus|incentive|incentive\s+pay)\s*[:=-]?\s*([^,.;\n]{3,60})/i,
-      /(\d+(?:\.\d+)?%)\s+(?:target\s+)?bonus/i,
-      /(?:eligible\s+for\s+a\s+bonus\s+of)\s*([^,.;\n]{3,60})/i
-    ], "Not Explicitly Defined");
-
-    const clawback = extractAdvanced([
-      /(?:clawback|repayment|return\s+of\s+funds)\s*[:=-]?\s*([^,.;\n]{3,60})/i,
-      /(?:subject\s+to\s+repayment)\s+if\s+([^,.;\n]{3,60})/i
-    ], "None Detected");
-
-    const benefits = extractAdvanced([
-      /(eligible\s+after\s+\d+\s+days)/i,
-      /(\d+\s*day\s+waiting\s+period)/i,
-      /(?:eligible\s+to\s+participate\s+in\s+the\s+company’s\s+[^,.;\n]{3,80})/i,
-      /(?:benefits|fringe\s+benefits|perks)\s*[:=-]?\s*([^,.;\n]{3,100})/i
-    ], "Standard Package");
-
-    const vacation = extractAdvanced([
-      /(\d+\s*hours?\s+or\s+\d+\s*(?:day|week)s?\s+for\s+each\s+\d+\s*day\s+period)/i,
-      /(?:unlimited)\s+(?:vacation|pto|time\s+off)/i,
-      /(?:vacation|pto|time\s+off|paid\s+leave)\s*[:=-]?\s*([^,.;\n]{3,80})/i,
-      /(\d+\s*(?:day|week)s?)\s+(?:of\s+)?(?:vacation|pto)/i
-    ], "Standard Accrual");
-
-    const terminationType = extractAdvanced([
-      /(at\s*will|at-will)/i,
-      /(?:terminated\s+at\s+any\s+time)/i
-    ], "Contractual Term");
-
-    const ipRights = extractAdvanced([
-      /(work\s+product|proprietary\s+rights|work\s+for\s+hire)/i,
-      /(?:assignment\s+of\s+inventions)/i
-    ], "Standard IP Assignment");
-
-    const severance = extractAdvanced([
-      /(\d+\s*(?:month|day|week)s?)\s+(?:of\s+)?(?:base\s+)?severance/i,
-      /(?:severance|termination)\s+(?:payment|benefit|pay)\s*[:=-]?\s*([^,.;\n]{3,20})/i
-    ], "Not Found");
-
-    const nonCompete = extractAdvanced([
-      /(?:non-compete|non-competition|restrictive\s+covenant)\s*(?:period|term)?\s*[:=-]?\s*([^,.;\n]{3,20})/i,
-      /(\d+\s*months?)\s+(?:non-compete|restriction)/i
-    ], "Not Found");
-
-    const determineLevel = (title) => {
-      const t = title.toLowerCase();
-      if (t.includes('vp') || t.includes('vice president') || t.includes('chief') || t.includes('head') || t.includes('director')) return 'Executive';
-      if (t.includes('senior') || t.includes('lead') || t.includes('principal')) return 'Senior';
-      if (t.includes('junior') || t.includes('associate') || t.includes('entry')) return 'Junior';
-      return 'Professional';
-    };
-
-    const level = determineLevel(rawTitle);
-    const numericSalary = parseFloat(salary.replace(/[$,]/g, '')) || 0;
-    
-    const BENCHMARKS = {
-      Executive: { salary: "$250k - $450k", min: 250000, max: 450000 },
-      Senior: { salary: "$160k - $240k", min: 160000, max: 240000 },
-      Professional: { salary: "$110k - $170k", min: 110000, max: 170000 },
-      Junior: { salary: "$70k - $105k", min: 70000, max: 105000 }
-    };
-
-    const currentBenchmark = BENCHMARKS[level];
-    const isAboveBenchmark = numericSalary > currentBenchmark.max;
-    const isBelowBenchmark = numericSalary > 0 && numericSalary < currentBenchmark.min;
-
-    const data = {
-      salary: numericSalary,
-      jurisdiction: cleanJurisdiction,
-      level: level,
-      benchmark: currentBenchmark,
-      title: rawTitle,
-      equity: equity,
-      vacation: vacation,
-      severance: severance,
-      bonus: bonus,
-      clawback: clawback,
-      nonCompete: nonCompete,
-      benefits: benefits,
-      terminationType: terminationType,
-      ipRights: ipRights
-    };
-
-    const markdown = `
-# Employment Audit Report: ${rawTitle}
-**Role Grade:** *${level}* | **Jurisdiction:** *${cleanJurisdiction}*
-
----
-
-### 1. Contract Overview & Executive Summary
-
-This report provides a technical analysis of the employment offer for the position of **${rawTitle}**.
-
-**Executive Key Findings:**
-*   **Compensation Profile:** Total cash compensation is anchored at *${salary}*. This is *${isAboveBenchmark ? 'exceptionally strong' : isBelowBenchmark ? 'below market floor' : 'solidly positioned'}* for a ${level}-level role.
-*   **Operational Risk:** The ${nonCompete === "Not Found" ? 'lack of a restrictive non-compete' : `presence of a *${nonCompete}* non-compete`} is a critical factor for your future career mobility.
-*   **Equity Exposure:** ${equity === "Not Detected" ? "No equity grant was identified, which is atypical for startup-grade offers." : `Identified *${equity}* with standard vesting logic.`}
-
----
-
-### 2. Clause-by-Clause Legal and Operational Report
-
-#### I. Compensation & Bonus Structure
-*   **Base Salary:** *${salary}* per annum.
-*   **Incentive Pay:** *${bonus}*.
-*   **Technical Reporting:** ${bonus === "Not Explicitly Defined" ? "The contract lacks a structured bonus formula." : `Performance criteria should be explicitly tied to KPIs to avoid discretionary ambiguity.`}
-*   **Equity Vesting:** ${equity !== "Not Detected" ? `The grant of *${equity}* typically follows a 4-year cycle with a 1-year cliff.` : "N/A"}
-
-#### II. Severance & Termination Conditions
-*   **Terms:** *${severance}*.
-*   **Status:** *${terminationType}*.
-*   **Impact:** ${terminationType.toLowerCase().includes('at will') ? "At-will employment allows either party to terminate the relationship at any time, which provides maximum flexibility but minimal notice security." : "The contract establishes a protected term window."}
-
-#### III. Intellectual Property & Restrictive Covenants
-*   **IP Assignment:** *${ipRights}*.
-*   **Non-Compete/Solicit:** *${nonCompete}*.
-
-#### IV. Benefits & Additional Perks
-*   **Package:** *${benefits}*.
-*   **Time Off (PTO):** *${vacation}*.
-*   **Observation:** ${vacation.toLowerCase().includes('unlimited') ? "Unlimited PTO is a modern benefit that offers flexibility, though actual usage is subject to 'ultimate decision' and reasonability clauses as seen in this document." : "An accrual-based policy provides a guaranteed 'bank' of days."}
-
-#### V. Clawback Conditions
-*   **Status:** *${clawback}*.
-`;
-
-    return { markdown, data };
   };
+
 
   const renderBenchmarks = () => {
     const calculateTaxDetailed = (gross, state) => {
@@ -641,9 +437,13 @@ This report provides a technical analysis of the employment offer for the positi
         )}
 
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-          <button className="btn-primary" onClick={() => triggerAnalysis(contractText || 'PDF_UPLOADED')} disabled={isAnalyzing || (!contractText && !fileName)}>
+          <button className="btn-primary" onClick={() => {
+            const textToAnalyze = pdfTextRef.current || contractText;
+            if (textToAnalyze) triggerAnalysis(textToAnalyze);
+          }} disabled={isAnalyzing || (!contractText && !pdfTextRef.current)}>
             {isAnalyzing ? <Loader2 className="spinner" size={18} /> : 'Analyze Agreement'}
           </button>
+
           <input type="file" id="pdf-upload" accept=".pdf" style={{ display: 'none' }} onChange={handleFileUpload} />
           <button className="btn-primary" style={{ background: 'transparent', border: '1px solid var(--border-subtle)' }} onClick={() => document.getElementById('pdf-upload').click()}>
             Upload PDF
@@ -685,9 +485,10 @@ This report provides a technical analysis of the employment offer for the positi
           <div className="glass" style={{ padding: '3.5rem', marginBottom: '2.5rem', minHeight: '400px', color: 'var(--text-primary)' }}>
             {analysisResult && (
               <div className="markdown-content">
-                <ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {markdownText}
                 </ReactMarkdown>
+
               </div>
             )}
           </div>
